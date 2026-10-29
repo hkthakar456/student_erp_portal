@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Course &mdash; {{ course.code }}{% else %}Create New Course{% endif %} &mdash; Beacon ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h2>{% if is_edit %}Edit Course Section{% else %}Create New Course Offering{% endif %}</h2>
+    <p>{% if is_edit %}Update details and capacity for course code {{ course.code }}.{% else %}Publish a new course to the university academic catalog.{% endif %}</p>
+  </div>
+  <a href="{% if is_edit %}{{ url_for('courses.detail', course_id=course.id) }}{% else %}{{ url_for('courses.index') }}{% endif %}" class="btn btn-secondary">
+    &larr; Cancel
+  </a>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+  <div class="card-header">
+    <h3>{% if is_edit %}Edit Course Details{% else %}Course Registration Form{% endif %}</h3>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{% if is_edit %}{{ url_for('courses.edit', course_id=course_id) }}{% else %}{{ url_for('courses.create') }}{% endif %}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="courseCode">Course Code *</label>
+          <input type="text" id="courseCode" name="code" class="form-control" placeholder="e.g. CS301" required value="{{ course.code or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="courseTitle">Course Title *</label>
+          <input type="text" id="courseTitle" name="title" class="form-control" placeholder="e.g. Database Management Systems" required value="{{ course.title or '' }}">
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="instructor">Faculty Instructor *</label>
+          <input type="text" id="instructor" name="instructor" class="form-control" placeholder="e.g. Dr. Alan Turing" required value="{{ course.instructor or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="department">Academic Department *</label>
+          <select id="department" name="department" class="form-select" required>
+            <option value="">Select Department...</option>
+            {% for d in departments %}
+              <option value="{{ d }}" {% if course.department == d %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label class="form-label" for="credits">Academic Credits *</label>
+          <input type="number" min="1" max="6" id="credits" name="credits" class="form-control" required value="{{ course.credits or 3 }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="capacity">Student Capacity *</label>
+          <input type="number" min="5" max="150" id="capacity" name="capacity" class="form-control" required value="{{ course.capacity or 40 }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="term">Academic Term *</label>
+          <select id="term" name="term" class="form-select" required>
+            {% for t in terms %}
+              <option value="{{ t }}" {% if course.term == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">Course Syllabus & Description</label>
+        <textarea id="description" name="description" rows="4" class="form-control" placeholder="Provide syllabus overview, objectives, and course prerequisites...">{{ course.description or '' }}</textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+        <a href="{% if is_edit %}{{ url_for('courses.detail', course_id=course.id) }}{% else %}{{ url_for('courses.index') }}{% endif %}" class="btn btn-secondary">
+          Cancel
+        </a>
+        <button type="submit" class="btn btn-primary">
+          {% if is_edit %}Save Changes{% else %}Publish Course{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

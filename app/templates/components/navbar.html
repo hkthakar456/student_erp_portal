@@ -1,0 +1,20 @@
+<header class="top-bar">
+  <div class="top-bar-left">
+    <button id="mobileToggle" class="mobile-toggle" aria-label="Toggle navigation menu">☰</button>
+    <div class="current-term-badge">
+      <span>🗓️</span>
+      <strong>{{ active_term }}</strong>
+    </div>
+  </div>
+
+  <div class="top-bar-right">
+    {% if current_user %}
+      <span style="font-size: 0.85rem; color: var(--text-secondary);">
+        Role: <strong style="color: var(--text-primary);">{{ current_user.role|capitalize }}</strong>
+      </span>
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-secondary">Sign Out</a>
+    {% else %}
+      <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary">Sign In</a>
+    {% endif %}
+  </div>
+</header>

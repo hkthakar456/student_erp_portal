@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Course Catalog &mdash; Beacon ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h2>Course Catalog</h2>
+    <p>Official course offerings, faculty instructors, department schedules, and enrollment capacities.</p>
+  </div>
+  {% if is_admin %}
+    <a href="{{ url_for('courses.create') }}" class="btn btn-primary">➕ Create New Course</a>
+  {% endif %}
+</div>
+
+<!-- Department Filter -->
+<div class="filter-card">
+  <form method="GET" action="{{ url_for('courses.index') }}" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+    <div class="form-group" style="margin-bottom: 0; min-width: 250px;">
+      <label class="form-label" for="deptFilter">Filter by Academic Department</label>
+      <select id="deptFilter" name="department" class="form-select" onchange="this.form.submit()">
+        <option value="All" {% if selected_dept == 'All' %}selected{% endif %}>All Departments</option>
+        {% for d in departments %}
+          <option value="{{ d }}" {% if selected_dept == d %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if selected_dept != 'All' %}
+      <a href="{{ url_for('courses.index') }}" class="btn btn-secondary btn-sm" style="height: 38px;">Reset Filter</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Courses Grid / Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem;">
+  {% if courses %}
+    {% for c in courses %}
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="card-header" style="background-color: #ffffff;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge badge-primary" style="font-size: 0.85rem; font-family: monospace;">{{ c.code }}</span>
+              <span class="badge badge-secondary">{{ c.credits }} Credits</span>
+            </div>
+            <span class="badge {% if c.enrolled_count >= c.capacity %}badge-danger{% else %}badge-success{% endif %}">
+              {{ c.enrolled_count }} / {{ c.capacity }} Enrolled
+            </span>
+          </div>
+          <div class="card-body">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.3;">
+              {{ c.title }}
+            </h3>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+              <span>👨‍🏫 {{ c.instructor }}</span> &bull; <span>🏛️ {{ c.department }}</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ c.description or 'No syllabus summary provided.' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Term: <strong>{{ c.term }}</strong></span>
+          <div style="display: flex; gap: 0.5rem;">
+            {% if is_admin %}
+              <a href="{{ url_for('courses.edit', course_id=c.id) }}" class="btn btn-sm btn-outline">Edit</a>
+            {% endif %}
+            <a href="{{ url_for('courses.detail', course_id=c.id) }}" class="btn btn-sm btn-primary">
+              Roster & Details &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <h4>No courses found</h4>
+        <p>No offerings in this department for the selected term.</p>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

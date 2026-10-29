@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sign in to Beacon ERP Student Management Portal.">
+  <title>Sign In &mdash; Beacon Student ERP</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top right, #1e293b, #0f172a);
+      padding: 1.5rem;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 460px;
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+    }
+    .auth-header {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      padding: 2.25rem 2rem;
+      text-align: center;
+      color: white;
+    }
+    .auth-brand-icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 1rem;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+    }
+    .auth-body {
+      padding: 2rem;
+    }
+    .demo-accounts-box {
+      margin-top: 1.75rem;
+      background-color: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      font-size: 0.8rem;
+    }
+    .demo-account-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .demo-account-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-brand-icon">B</div>
+      <h2 style="font-size: 1.4rem; font-weight: 700;">Beacon ERP</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.25rem;">Student Management & Campus Administration</p>
+    </div>
+
+    <div class="auth-body">
+      {% include "components/flash_messages.html" %}
+
+      <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label for="emailInput" class="form-label">Email Address</label>
+          <input type="email" id="emailInput" name="email" class="form-control" placeholder="name@campus.edu" required value="{{ email or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label for="passwordInput" class="form-label">Password</label>
+          <input type="password" id="passwordInput" name="password" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.95rem; margin-top: 0.5rem;">
+          Sign In
+        </button>
+      </form>
+
+      <div class="demo-accounts-box">
+        <strong style="color: #334155; display: block; margin-bottom: 0.5rem;">⚡ Quick Demo Accounts:</strong>
+        <div class="demo-account-item">
+          <div>
+            <strong>Administrator:</strong> <code>admin@campus.edu</code><br>
+            <span style="color: #64748b;">Password: <code>AdminPass123!</code></span>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline" onclick="fillCreds('admin@campus.edu', 'AdminPass123!')">Fill</button>
+        </div>
+        <div class="demo-account-item">
+          <div>
+            <strong>Student:</strong> <code>alex.rivers@campus.edu</code><br>
+            <span style="color: #64748b;">Password: <code>StudentPass123!</code></span>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline" onclick="fillCreds('alex.rivers@campus.edu', 'StudentPass123!')">Fill</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.25rem; text-align: center; font-size: 0.75rem; color: #94a3b8;">
+        🎓 Educational demonstration portal. No public registration permitted.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function fillCreds(email, password) {
+      document.getElementById('emailInput').value = email;
+      document.getElementById('passwordInput').value = password;
+    }
+  </script>
+</body>
+</html>

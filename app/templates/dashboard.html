@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard &mdash; Beacon ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h2>Academic Overview & Dashboard</h2>
+    <p>Welcome to Beacon ERP &bull; Active Academic Term: <strong>{{ stats.semester }}</strong></p>
+  </div>
+  {% if is_admin %}
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="{{ url_for('students.create') }}" class="btn btn-primary">➕ Add Student</a>
+      <a href="{{ url_for('courses.create') }}" class="btn btn-secondary">📖 Add Course</a>
+    </div>
+  {% endif %}
+</div>
+
+<div class="disclaimer-banner">
+  <span>ℹ️</span>
+  <div>
+    <strong>System Notice:</strong> This portal operates in local demonstration mode. Fictional datasets reflect academic term operations.
+  </div>
+</div>
+
+<!-- KPI Metric Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-content">
+      <span class="stat-label">Enrolled Students</span>
+      <span class="stat-value">{{ stats.active_students }}</span>
+      <span class="stat-tag">Active Degree Candidates</span>
+    </div>
+    <div class="stat-icon">🎓</div>
+  </div>
+
+  <div class="stat-card accent-purple">
+    <div class="stat-content">
+      <span class="stat-label">Active Courses</span>
+      <span class="stat-value">{{ stats.active_courses }}</span>
+      <span class="stat-tag">Across 4 Academic Departments</span>
+    </div>
+    <div class="stat-icon">📚</div>
+  </div>
+
+  <div class="stat-card accent-green">
+    <div class="stat-content">
+      <span class="stat-label">Course Enrollments</span>
+      <span class="stat-value">{{ stats.total_enrollments }}</span>
+      <span class="stat-tag">Active Class Registrations</span>
+    </div>
+    <div class="stat-icon">📝</div>
+  </div>
+
+  <div class="stat-card accent-amber">
+    <div class="stat-content">
+      <span class="stat-label">Attendance Rate</span>
+      <span class="stat-value">{{ stats.campus_attendance_rate }}%</span>
+      <span class="stat-tag">Campus Average <em>(Demo metric)</em></span>
+    </div>
+    <div class="stat-icon">📈</div>
+  </div>
+</div>
+
+<!-- Student-specific snapshot if student is signed in -->
+{% if is_student and student_info %}
+  <div class="card" style="border-left: 4px solid var(--color-primary);">
+    <div class="card-header">
+      <h3>👤 Your Student Profile Snapshot &mdash; {{ student_info.first_name }} {{ student_info.last_name }} ({{ student_info.student_id_code }})</h3>
+      <a href="{{ url_for('students.detail', student_id=student_info.id) }}" class="btn btn-sm btn-outline">Full Profile</a>
+    </div>
+    <div class="card-body">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">Program & Year</span>
+          <strong>{{ student_info.program }}</strong><br>
+          <span class="badge badge-primary">{{ student_info.year_level }}</span>
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">Cumulative GPA</span>
+          <strong style="font-size: 1.2rem; color: var(--color-primary);">{{ student_info.gpa }}</strong> / 4.00
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">Personal Attendance Rate</span>
+          {% if student_attendance %}
+            <strong style="font-size: 1.2rem; color: var(--color-success);">{{ student_attendance.rate }}%</strong>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">({{ student_attendance.present }}/{{ student_attendance.total }} sessions)</span>
+          {% else %}
+            <span>N/A</span>
+          {% endif %}
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">Grade Book Average</span>
+          {% if student_grades and student_grades.total_assessments > 0 %}
+            <strong style="font-size: 1.2rem; color: var(--color-primary);">{{ student_grades.average_percentage }}%</strong>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">({{ student_grades.total_assessments }} assessments)</span>
+          {% else %}
+            <span>No grades recorded yet</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Announcements & Activity Grid -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+  <!-- Campus Announcements -->
+  <div class="card">
+    <div class="card-header">
+      <h3>📢 Official Campus Bulletins & Announcements</h3>
+      <a href="{{ url_for('announcements.index') }}" class="btn btn-sm btn-outline">View All</a>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      {% if announcements %}
+        <div style="divide-y: 1px solid var(--border-color);">
+          {% for a in announcements %}
+            <div style="padding: 1.25rem; border-bottom: 1px solid var(--border-color-subtle);">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  {% if a.is_pinned %}
+                    <span title="Pinned announcement" style="font-size: 0.85rem;">📌</span>
+                  {% endif %}
+                  <strong style="font-size: 0.95rem; color: var(--text-primary);">{{ a.title }}</strong>
+                </div>
+                <span class="badge badge-secondary">{{ a.category }}</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; line-height: 1.4;">
+                {{ a.content }}
+              </p>
+              <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                <span>By {{ a.author_name }}</span>
+                <span>{{ a.published_at[:10] }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">📢</div>
+          <p>No active announcements posted.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick Actions & Feed -->
+  <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    <!-- Feedback / Quick Navigation Card -->
+    {% if is_admin %}
+      <div class="card">
+        <div class="card-header">
+          <h3>🛡️ Pending Feedback Review</h3>
+          <span class="badge badge-warning">{{ stats.open_feedback }} Open</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          {% if recent_feedback %}
+            <div style="font-size: 0.85rem;">
+              {% for fb in recent_feedback %}
+                <div style="padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border-color-subtle);">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                    <span class="badge {{ fb.status|status_badge }}">{{ fb.status }}</span>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">{{ fb.created_at[:10] }}</span>
+                  </div>
+                  <p style="color: var(--text-primary); font-weight: 500; font-size: 0.8rem; margin-bottom: 0.2rem;">
+                    {{ fb.category }}
+                  </p>
+                  <p style="color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    "{{ fb.message }}"
+                  </p>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="card-footer" style="text-align: center;">
+              <a href="{{ url_for('feedback.admin_list') }}" class="btn btn-sm btn-primary" style="width: 100%;">
+                Open Feedback Queue
+              </a>
+            </div>
+          {% else %}
+            <div class="empty-state" style="padding: 1.5rem;">
+              <p>No pending feedback tickets.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div class="card">
+        <div class="card-header">
+          <h3>💬 Student Voice</h3>
+        </div>
+        <div class="card-body">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Have concerns about facilities, IT, or course coursework? Submit a ticket directly to campus admin.
+          </p>
+          <a href="{{ url_for('feedback.index') }}" class="btn btn-primary btn-sm" style="width: 100%;">
+            Submit Feedback Ticket
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Academic Term Calendar / illustrative metrics -->
+    <div class="card">
+      <div class="card-header">
+        <h3>📅 Term Milestones</h3>
+      </div>
+      <div class="card-body" style="font-size: 0.85rem;">
+        <ul style="list-style: none; padding: 0;">
+          <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color-subtle); display: flex; justify-content: space-between;">
+            <span>Course Registration Closes:</span>
+            <strong>Nov 06</strong>
+          </li>
+          <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color-subtle); display: flex; justify-content: space-between;">
+            <span>Midterm Exam Week:</span>
+            <strong>Nov 16 - Nov 20</strong>
+          </li>
+          <li style="padding: 0.5rem 0; display: flex; justify-content: space-between;">
+            <span>Final Grade Submissions:</span>
+            <strong>Dec 18</strong>
+          </li>
+        </ul>
+        <div style="margin-top: 0.75rem; font-size: 0.7rem; color: var(--text-muted); text-align: center;">
+          <em>Illustrative Academic Calendar</em>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback Review Queue &mdash; Beacon ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h2>Student Feedback Management Queue</h2>
+    <p>Administrative triage of campus feedback, student concerns, and facility reports.</p>
+  </div>
+  <a href="{{ url_for('feedback.index') }}" class="btn btn-secondary">
+    ➕ Submit Ticket
+  </a>
+</div>
+
+<!-- Status Filters -->
+<div class="filter-card">
+  <form method="GET" action="{{ url_for('feedback.admin_list') }}" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+    <strong style="font-size: 0.85rem; color: var(--text-secondary);">Filter Status:</strong>
+    <a href="{{ url_for('feedback.admin_list') }}" class="btn btn-sm {% if selected_status == 'All' %}btn-primary{% else %}btn-secondary{% endif %}">
+      All
+    </a>
+    {% for st in statuses %}
+      <a href="{{ url_for('feedback.admin_list', status=st) }}" class="btn btn-sm {% if selected_status == st %}btn-primary{% else %}btn-secondary{% endif %}">
+        {{ st }}
+      </a>
+    {% endfor %}
+  </form>
+</div>
+
+<!-- Feedback Tickets List -->
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+  {% if feedback_items %}
+    {% for fb in feedback_items %}
+      <div class="card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <strong style="color: var(--color-primary); font-family: monospace;">#FB-{{ fb.id }}</strong>
+            <h3 style="font-size: 1.05rem; margin: 0;">{{ fb.category }}</h3>
+            <span class="badge {{ fb.status|status_badge }}">{{ fb.status }}</span>
+          </div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">
+            Submitted: {{ fb.created_at[:10] }}
+          </span>
+        </div>
+        <div class="card-body">
+          <p style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem; white-space: pre-line;">
+            {{ fb.message }}
+          </p>
+
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Contact Email: <strong>{{ fb.contact_email or 'Anonymous submission' }}</strong>
+          </div>
+
+          {% if fb.admin_response %}
+            <div style="background-color: #f8fafc; border-left: 3px solid var(--color-info); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+              <strong style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-info); display: block; margin-bottom: 0.25rem;">
+                Official Response / Resolution Notes:
+              </strong>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                {{ fb.admin_response }}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Status Update Form -->
+          <form method="POST" action="{{ url_for('feedback.update_status', feedback_id=fb.id) }}" style="background-color: #fafbfd; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-top: 1rem;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div style="display: grid; grid-template-columns: 180px 1fr auto; gap: 0.75rem; align-items: flex-end;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.75rem;">Change Status</label>
+                <select name="status" class="form-select" style="font-size: 0.85rem;">
+                  {% for s in statuses %}
+                    <option value="{{ s }}" {% if fb.status == s %}selected{% endif %}>{{ s }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.75rem;">Update Resolution Note</label>
+                <input type="text" name="admin_response" class="form-control" style="font-size: 0.85rem;" placeholder="e.g. Work order placed with facilities..." value="{{ fb.admin_response or '' }}">
+              </div>
+
+              <div>
+                <button type="submit" class="btn btn-sm btn-primary" style="height: 38px;">
+                  Update Ticket
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="card">
+      <div class="empty-state">
+        <div class="empty-state-icon">💬</div>
+        <h4>No feedback tickets found</h4>
+        <p>No student feedback submissions in this status category.</p>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

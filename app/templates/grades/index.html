@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Grades & Assessments &mdash; Beacon ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h2>Academic Grade Book & Performance</h2>
+    <p>Continuous assessment scoring, midterm evaluations, and demonstration GPA calculations.</p>
+  </div>
+</div>
+
+<div class="disclaimer-banner">
+  <span>🎓</span>
+  <div>
+    <strong>Academic Notice:</strong> This grade book is an educational simulation. Calculations reflect local demo algorithms and do not constitute an official transcript.
+  </div>
+</div>
+
+<!-- Admin Grade Entry Card -->
+{% if is_admin %}
+  <div class="card">
+    <div class="card-header">
+      <h3>✍️ Record Assessment Grade</h3>
+      <span id="gradePercentagePreview" style="font-weight: 700; font-size: 0.9rem;"></span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('grades.record') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-label" for="gradeStudent">Student *</label>
+            <select id="gradeStudent" name="student_id" class="form-select" required>
+              <option value="">Select Student...</option>
+              {% for s in students %}
+                <option value="{{ s.id }}" {% if selected_student_id == s.id %}selected{% endif %}>
+                  {{ s.first_name }} {{ s.last_name }} ({{ s.student_id_code }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="gradeCourse">Course *</label>
+            <select id="gradeCourse" name="course_id" class="form-select" required>
+              <option value="">Select Course...</option>
+              {% for c in courses %}
+                <option value="{{ c.id }}" {% if selected_course_id == c.id %}selected{% endif %}>
+                  {{ c.code }} - {{ c.title }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="assessmentName">Assessment Title *</label>
+            <input type="text" id="assessmentName" name="assessment_name" class="form-control" placeholder="e.g. Midterm Exam, Assignment 2..." required>
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-label" for="gradeScoreInput">Score Achieved *</label>
+            <input type="number" step="0.5" min="0" id="gradeScoreInput" name="score" class="form-control" placeholder="e.g. 88.5" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="gradeMaxScoreInput">Maximum Score *</label>
+            <input type="number" step="0.5" min="1" id="gradeMaxScoreInput" name="max_score" class="form-control" placeholder="e.g. 100" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="weightPct">Weighting %</label>
+            <input type="number" step="1" min="0" max="100" id="weightPct" name="weight_percentage" class="form-control" placeholder="e.g. 20">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="gradeRemarks">Evaluator Feedback & Comments</label>
+          <input type="text" id="gradeRemarks" name="remarks" class="form-control" placeholder="e.g. Excellent algorithmic optimization; thorough testing...">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary">
+            Submit Grade Entry
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Student Grade Summary Statistics -->
+{% if summary %}
+  <div class="stats-grid" style="margin-bottom: 1.5rem;">
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Weighted Average</span>
+        <span class="stat-value">{{ summary.average_percentage }}%</span>
+        <span class="stat-tag">Across {{ summary.total_assessments }} Items</span>
+      </div>
+      <div class="stat-icon">📈</div>
+    </div>
+
+    <div class="stat-card accent-green">
+      <div class="stat-content">
+        <span class="stat-label">Letter Grade Estimate</span>
+        <span class="stat-value">
+          {% if summary.average_percentage >= 90 %}A{% elif summary.average_percentage >= 80 %}B{% elif summary.average_percentage >= 70 %}C{% elif summary.average_percentage >= 60 %}D{% else %}F{% endif %}
+        </span>
+        <span class="stat-tag">Standard Scale <em>(Demo)</em></span>
+      </div>
+      <div class="stat-icon">🏆</div>
+    </div>
+
+    <div class="stat-card accent-purple">
+      <div class="stat-content">
+        <span class="stat-label">Evaluated Assessments</span>
+        <span class="stat-value">{{ summary.total_assessments }}</span>
+        <span class="stat-tag">Logged to Date</span>
+      </div>
+      <div class="stat-icon">📝</div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Filter Bar -->
+<div class="filter-card">
+  <form method="GET" action="{{ url_for('grades.index') }}" class="filter-form">
+    {% if not is_student %}
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label" for="filterGradeStudent">Filter by Student</label>
+        <select id="filterGradeStudent" name="student_id" class="form-select">
+          <option value="">All Students</option>
+          {% for s in students %}
+            <option value="{{ s.id }}" {% if selected_student_id == s.id %}selected{% endif %}>
+              {{ s.first_name }} {{ s.last_name }} ({{ s.student_id_code }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endif %}
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" for="filterGradeCourse">Filter by Course</label>
+      <select id="filterGradeCourse" name="course_id" class="form-select">
+        <option value="">All Courses</option>
+        {% for c in courses %}
+          <option value="{{ c.id }}" {% if selected_course_id == c.id %}selected{% endif %}>
+            {{ c.code }} - {{ c.title }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn btn-primary">Filter</button>
+      <a href="{{ url_for('grades.index') }}" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Grades Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>Grade Records ({{ grades|length }})</h3>
+    <input type="text" id="quickTableFilter" placeholder="Instant filter entries..." class="form-control" style="width: 220px; padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+  </div>
+  <div class="table-responsive">
+    <table class="table filterable-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Course</th>
+          <th>Assessment Item</th>
+          <th>Score</th>
+          <th>Percentage</th>
+          <th>Weight</th>
+          <th>Instructor Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if grades %}
+          {% for g in grades %}
+            <tr>
+              <td>
+                <a href="{{ url_for('students.detail', student_id=g.student_id) }}" style="font-weight: 600;">
+                  {{ g.first_name }} {{ g.last_name }}
+                </a>
+                <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">{{ g.student_id_code }}</div>
+              </td>
+              <td><strong>{{ g.course_code }}</strong> &bull; {{ g.course_title }}</td>
+              <td><span style="font-weight: 600;">{{ g.assessment_name }}</span></td>
+              <td><strong>{{ g.score }}</strong> / {{ g.max_score }}</td>
+              <td>
+                {% set pct = (g.score / g.max_score * 100)|round(1) %}
+                <span class="badge {% if pct >= 85 %}badge-success{% elif pct >= 70 %}badge-info{% elif pct >= 60 %}badge-warning{% else %}badge-danger{% endif %}" style="font-size: 0.8rem;">
+                  {{ pct }}%
+                </span>
+              </td>
+              <td style="color: var(--text-secondary);">{{ g.weight_percentage }}%</td>
+              <td style="font-size: 0.85rem; color: var(--text-secondary);">{{ g.remarks or '&mdash;' }}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <h4>No grade entries recorded</h4>
+                <p>No assessment entries found for the selected filter parameters.</p>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

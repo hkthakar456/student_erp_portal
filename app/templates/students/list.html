@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Student Directory &mdash; Beacon ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h2>Student Directory</h2>
+    <p>Manage and review candidate student profiles across academic departments.</p>
+  </div>
+  {% if is_admin %}
+    <a href="{{ url_for('students.create') }}" class="btn btn-primary">➕ Register New Student</a>
+  {% endif %}
+</div>
+
+<!-- Search and Filters Bar -->
+<div class="filter-card">
+  <form method="GET" action="{{ url_for('students.index') }}" class="filter-form">
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" for="searchQ">Search by Name, ID, or Email</label>
+      <input type="text" id="searchQ" name="q" class="form-control" placeholder="e.g. Alex, STU-2024, CS..." value="{{ query }}">
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" for="filterProgram">Academic Program</label>
+      <select id="filterProgram" name="program" class="form-select">
+        <option value="All" {% if selected_program == 'All' %}selected{% endif %}>All Programs</option>
+        {% for p in programs %}
+          <option value="{{ p }}" {% if selected_program == p %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" for="filterYear">Year Level</label>
+      <select id="filterYear" name="year" class="form-select">
+        <option value="All" {% if selected_year == 'All' %}selected{% endif %}>All Years</option>
+        {% for y in year_levels %}
+          <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" for="filterStatus">Status</label>
+      <select id="filterStatus" name="status" class="form-select">
+        <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All Statuses</option>
+        <option value="Active" {% if selected_status == 'Active' %}selected{% endif %}>Active</option>
+        <option value="Inactive" {% if selected_status == 'Inactive' %}selected{% endif %}>Inactive</option>
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn btn-primary">Filter</button>
+      <a href="{{ url_for('students.index') }}" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Student Roster Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>Enrolled Students ({{ students|length }})</h3>
+    <input type="text" id="quickTableFilter" placeholder="Instant filter visible rows..." class="form-control" style="width: 240px; padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+  </div>
+  <div class="table-responsive">
+    <table class="table filterable-table">
+      <thead>
+        <tr>
+          <th>Student ID</th>
+          <th>Full Name</th>
+          <th>Program</th>
+          <th>Year Level</th>
+          <th>Status</th>
+          <th>Active Courses</th>
+          <th>Cumulative GPA</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if students %}
+          {% for s in students %}
+            <tr>
+              <td>
+                <strong style="font-family: monospace; color: var(--color-primary);">{{ s.student_id_code }}</strong>
+              </td>
+              <td>
+                <div style="font-weight: 600;">{{ s.first_name }} {{ s.last_name }}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ s.email }}</div>
+              </td>
+              <td style="font-size: 0.85rem;">{{ s.program }}</td>
+              <td>
+                <span class="badge badge-secondary">{{ s.year_level }}</span>
+              </td>
+              <td>
+                <span class="badge {{ s.status|status_badge }}">{{ s.status }}</span>
+              </td>
+              <td>
+                <span class="badge badge-info">{{ s.active_enrollments_count }} Course{% if s.active_enrollments_count != 1 %}s{% endif %}</span>
+              </td>
+              <td>
+                <strong>{{ "%.2f"|format(s.gpa) }}</strong>
+              </td>
+              <td style="text-align: right;">
+                <a href="{{ url_for('students.detail', student_id=s.id) }}" class="btn btn-sm btn-outline">
+                  View Profile &rarr;
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <h4>No students match your search criteria</h4>
+                <p>Try modifying your search term or filter parameters.</p>
+                <a href="{{ url_for('students.index') }}" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">Clear Filters</a>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
