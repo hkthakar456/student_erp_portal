@@ -96,9 +96,13 @@
               <tr>
                 <td><strong style="font-family: monospace; color: var(--color-primary);">{{ e.student_id_code }}</strong></td>
                 <td>
-                  <a href="{{ url_for('students.detail', student_id=e.student_id) }}" style="font-weight: 600;">
-                    {{ e.first_name }} {{ e.last_name }}
-                  </a>
+                  {% if is_admin or (current_user and current_user.student_id == e.student_id) %}
+                    <a href="{{ url_for('students.detail', student_id=e.student_id) }}" style="font-weight: 600;">
+                      {{ e.first_name }} {{ e.last_name }}
+                    </a>
+                  {% else %}
+                    <span style="font-weight: 600;">{{ e.first_name }} {{ e.last_name }}</span>
+                  {% endif %}
                 </td>
                 <td style="font-size: 0.85rem;">{{ e.program }}</td>
                 <td><span class="badge badge-secondary">{{ e.year_level }}</span></td>

@@ -185,9 +185,13 @@
           {% for g in grades %}
             <tr>
               <td>
-                <a href="{{ url_for('students.detail', student_id=g.student_id) }}" style="font-weight: 600;">
-                  {{ g.first_name }} {{ g.last_name }}
-                </a>
+                {% if is_admin or (current_user and current_user.student_id == g.student_id) %}
+                  <a href="{{ url_for('students.detail', student_id=g.student_id) }}" style="font-weight: 600;">
+                    {{ g.first_name }} {{ g.last_name }}
+                  </a>
+                {% else %}
+                  <span style="font-weight: 600;">{{ g.first_name }} {{ g.last_name }}</span>
+                {% endif %}
                 <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">{{ g.student_id_code }}</div>
               </td>
               <td><strong>{{ g.course_code }}</strong> &bull; {{ g.course_title }}</td>

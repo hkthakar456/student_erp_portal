@@ -178,9 +178,13 @@
             <tr>
               <td><strong style="color: var(--text-primary);">{{ r.date }}</strong></td>
               <td>
-                <a href="{{ url_for('students.detail', student_id=r.student_id) }}" style="font-weight: 600;">
-                  {{ r.first_name }} {{ r.last_name }}
-                </a>
+                {% if is_admin or (current_user and current_user.student_id == r.student_id) %}
+                  <a href="{{ url_for('students.detail', student_id=r.student_id) }}" style="font-weight: 600;">
+                    {{ r.first_name }} {{ r.last_name }}
+                  </a>
+                {% else %}
+                  <span style="font-weight: 600;">{{ r.first_name }} {{ r.last_name }}</span>
+                {% endif %}
                 <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">({{ r.student_id_code }})</span>
               </td>
               <td><strong>{{ r.course_code }}</strong> &bull; {{ r.course_title }}</td>

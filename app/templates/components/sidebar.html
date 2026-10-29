@@ -2,8 +2,8 @@
   <div class="sidebar-brand">
     <div class="brand-logo-icon">B</div>
     <div class="brand-text">
-      <h1>Beacon ERP</h1>
-      <span>Student Portal</span>
+      <h1>CampusHub</h1>
+      <span>Student ERP Portal</span>
     </div>
   </div>
 
@@ -13,10 +13,17 @@
       <span class="nav-icon">📊</span>
       <span>Dashboard</span>
     </a>
-    <a href="{{ url_for('students.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('students.') %}active{% endif %}">
-      <span class="nav-icon">🎓</span>
-      <span>Student Directory</span>
-    </a>
+    {% if is_admin %}
+      <a href="{{ url_for('students.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('students.') and request.endpoint != 'students.my_profile' %}active{% endif %}">
+        <span class="nav-icon">🎓</span>
+        <span>Student Directory</span>
+      </a>
+    {% elif is_student and current_user.student_id %}
+      <a href="{{ url_for('students.my_profile') }}" class="nav-link {% if request.endpoint in ['students.my_profile', 'students.detail'] %}active{% endif %}">
+        <span class="nav-icon">👤</span>
+        <span>My Academic Profile</span>
+      </a>
+    {% endif %}
     <a href="{{ url_for('courses.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('courses.') %}active{% endif %}">
       <span class="nav-icon">📚</span>
       <span>Course Catalog</span>

@@ -70,3 +70,27 @@ def test_toggle_student_status(admin_client):
 
     assert response.status_code == 200
     assert b"status changed to Inactive" in response.data
+
+def test_student_cannot_access_directory(student_client):
+    response = student_client.get("/students/", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Access denied. Administrator privileges are required" in response.data
+
+def test_student_can_view_own_profile(student_client):
+    # Student 1 is Alex Rivers
+    response = student_client.get("/students/1")
+    assert response.status_code == 200
+    assert b"Alex Rivers" in response.data
+    assert b"STU-2024-001" in response.data
+
+def test_student_cannot_view_other_student_profile(student_client):
+    # Student 1 (Alex) attempting to view Student 2 (Sophia)
+    response = student_client.get("/students/2", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Access denied. You can only view your own student profile" in response.data
+
+def test_student_my_profile_shortcut(student_client):
+    response = student_client.get("/students/profile", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Alex Rivers" in response.data
+    assert b"STU-2024-001" in response.data

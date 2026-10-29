@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from .. import get_repo
-from ..services.auth_service import login_required, admin_required, validate_csrf
+from ..services.auth_service import login_required, admin_required, validate_csrf, get_current_user
 
 students_bp = Blueprint("students", __name__)
 
@@ -15,7 +15,7 @@ PROGRAMS = [
 YEAR_LEVELS = ["Year 1 (Freshman)", "Year 2 (Sophomore)", "Year 3 (Junior)", "Year 4 (Senior)"]
 
 @students_bp.route("/")
-@login_required
+@admin_required
 def index():
     repo = get_repo()
     query = request.args.get("q", "").strip()
@@ -41,14 +41,30 @@ def index():
         year_levels=YEAR_LEVELS
     )
 
+@students_bp.route("/profile")
+@login_required
+def my_profile():
+    user = get_current_user()
+    if user and user.get("role") == "student" and user.get("student_id"):
+        return redirect(url_for("students.detail", student_id=user["student_id"]))
+    flash("No student profile linked to this account.", "warning")
+    return redirect(url_for("dashboard.index"))
+
 @students_bp.route("/<int:student_id>")
 @login_required
 def detail(student_id: int):
+    user = get_current_user()
+    # Students can strictly only view their own profile details
+    if user and user.get("role") == "student":
+        if user.get("student_id") != student_id:
+            flash("Access denied. You can only view your own student profile.", "danger")
+            return redirect(url_for("dashboard.index"))
+
     repo = get_repo()
     student = repo.get_student_by_id(student_id)
     if not student:
         flash("Student record not found.", "danger")
-        return redirect(url_for("students.index"))
+        return redirect(url_for("students.index") if user and user.get("role") == "admin" else url_for("dashboard.index"))
 
     enrollments = repo.get_enrollments_for_student(student_id)
     attendance_summary = repo.get_student_attendance_summary(student_id)
