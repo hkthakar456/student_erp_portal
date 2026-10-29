@@ -11,12 +11,9 @@
     </div>
     <p>Student ID: <strong style="font-family: monospace;">{{ student.student_id_code }}</strong> &bull; Program: {{ student.program }}</p>
   </div>
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
     {% if is_admin %}
       <a href="{{ url_for('students.index') }}" class="btn btn-secondary">&larr; Back to Directory</a>
-    {% else %}
-      <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">&larr; Back to Dashboard</a>
-    {% endif %}
-    {% if is_admin %}
       <a href="{{ url_for('students.edit', student_id=student.id) }}" class="btn btn-primary">✏️ Edit Profile</a>
       <form method="POST" action="{{ url_for('students.toggle_status', student_id=student.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to change this student\'s status?');">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -24,6 +21,8 @@
           {% if student.status == 'Active' %}Deactivate Account{% else %}Reactivate Account{% endif %}
         </button>
       </form>
+    {% else %}
+      <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">&larr; Back to Dashboard</a>
     {% endif %}
   </div>
 </div>
